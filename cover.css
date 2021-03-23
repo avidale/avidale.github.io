@@ -111,3 +111,7 @@ body {
 .jumbotron {
   background-color: #444;
 }
+
+.navbar-inner {
+    background-color:transparent;
+}
