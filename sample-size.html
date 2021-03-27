@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ещё один калькулятор размеров выборки</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
+</head>
+    <div id="interval">
+        <h2>Доверительный интервал для доли</h2>
+        <table>
+            <tr>
+                <th scope="row">Размер выборки</th>
+                <td><input v-model="n" type="number"></td>
+            </tr>
+            <tr>
+                <th scope="row">Число "успехов"</th>
+                <td><input v-model="k" type="number"></td>
+            </tr>
+            <tr>
+                <th scope="row">Доля "успехов"</th>
+                <td>{{p | formatPercent }}</td>
+            </tr>
+            <tr>
+                <th scope="col">Стандартное отклонение доли "успехов"</th>
+                <td>{{std | formatPercent }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Уверенность доверительного интервала</th>
+                <td><input v-model="alpha" type="float"></td>
+            </tr>
+            <tr>
+                <th scope="col">{{lp | formatPercent}} (нижняя граница)</th>
+                <td>{{lb | formatPercent}}</td>
+            </tr>
+            <tr>
+                <th scope="col">{{up | formatPercent }} (верхняя граница)</th>
+                <td>{{ub | formatPercent}}</td>
+            </tr>
+        </table>
+    </div>
+
+  <script>
+    Vue.filter("formatPercent", function (value) {
+      return numeral(value).format("0.[0000]%");
+    });
+
+    var app = new Vue({
+      el: '#interval',
+      data: {
+        n: 1000,
+        k: 50,
+        alpha: 0.95,
+      },
+      computed: {
+        p: function () { return this.k / this.n },
+        std: function () { return Math.sqrt(this.p * (1-this.p) / this.n) },
+        c: function() { return jStat.normal.inv(1 - (1-this.alpha) / 2, 0, 1) },
+        lp: function() { return (1-this.alpha) / 2 },
+        up: function() { return 1 - (1-this.alpha) / 2 },
+        lb: function() { return this.p - this.c * this.std },
+        ub: function() { return this.p + this.c * this.std },
+      }
+    })
+  </script>
+
+   <div id="sample-size">
+        <h2>Планирование размера выборки</h2>
+        <table>
+            <tr>
+                <th scope="row">Размер выборки</th>
+                <td>{{ n }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Базовая / ожидаемая доля "успехов"</th>
+                <td><input v-model="p" type="float"></td>
+            </tr>
+            <tr>
+                <th scope="row">Требуемая точность (радиус доверительного интервала)</th>
+                <td><input v-model="radius" type="float"></td>
+            </tr>
+                <th scope="row">Уверенность доверительного интервала</th>
+                <td><input v-model="alpha" type="float"></td>
+            </tr>
+            <tr>
+                <th scope="col">Стандартное отклонение доли "успехов"</th>
+                <td>{{std | formatPercent }}</td>
+            </tr>
+        </table>
+    </div>
+
+  <script>
+
+    var app2 = new Vue({
+      el: '#sample-size',
+      data: {
+        p: 0.005,
+        radius: 0.001,
+        alpha: 0.95,
+      },
+      computed: {
+        std: function () { return Math.sqrt(this.p * (1-this.p) / this.n) },
+        c: function() { return jStat.normal.inv(1 - (1-this.alpha) / 2, 0, 1) },
+        n: function() { return  Math.ceil(this.p * (1 - this.p) * Math.pow(this.c / this.radius, 2)) },
+      },
+    })
+  </script>
+
+<div>
+    <br/>
+    Подробнее про работу калькулятора можно почитать в блоге Матчасть
+    (<a href="https://vk.com/mat.chast">vk</a>, <a href="https://t.me/matchast">tg</a>).
+</div>
+
+
+</body>
+</html>
